@@ -9,33 +9,43 @@ import Loader from './components/Loader/Loader';
 import { Toaster } from 'react-hot-toast';
 import ErrorMessage from './components/ErrorMessage/ErrorMessage';
 
+export interface Image {
+  id: string;
+  urls: { small: string, regular: string };
+  alt_description: string;
+}
+
+interface Results {
+  results: Image[];
+  total_pages: number;
+}
 
 function App() {
-  const [query, setQuery] = useState('');
-  const [page, setPage] = useState(1);
-  const [images, setImages] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [isEmpty, setIsEmpty] = useState(false);
-  const [showBtn, setShowBtn] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const [urls, setUrls] = useState('');
-  const [alt, setAlt] = useState('');
+  const [query, setQuery] = useState<string>('');
+  const [page, setPage] = useState<number>(1);
+  const [images, setImages] = useState<Image[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<unknown>(null);
+  const [isEmpty, setIsEmpty] = useState<boolean>(false);
+  const [showBtn, setShowBtn] = useState<boolean>(false);
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [urls, setUrls] = useState<string>('');
+  const [alt, setAlt] = useState<string>('');
 
   useEffect(() => {
     if (!query) return;
     const fatchData = async () => {
       setIsLoading(true)
       try {
-        const { results, total_pages } = await getGallery(query, page)
+        const { results, total_pages }: Results = await getGallery(query, page)
         if (!results.length) {
           setIsEmpty(true);
           return;
         }
-        setImages(prevImages => ([...prevImages, ...results]));
-        setShowBtn(total_pages && total_pages !== page)
+        setImages((prevImages) => [...prevImages, ...results]);
+        setShowBtn(page > total_pages);
       } catch (error) {
-        setError(error)
+        setError(error);
       } finally {
         setIsLoading(false)
       }
@@ -44,7 +54,7 @@ function App() {
   }, [query, page])
 
 
-  const onHandleSubmit = value => {
+  const onHandleSubmit = (value: string): void => {
     if (!value.trim()) {
       notify('Please enter a search value.');
       return;
@@ -57,23 +67,23 @@ function App() {
     setShowBtn(false);
   };
 
-  const onLoadeMore = () => {
-    setPage(prevPage => prevPage + 1)
+  const onLoadeMore = (): void => {
+    setPage((prevPage )=> prevPage + 1)
   }
 
-  const openModal = (urls, alt) => {
+  const openModal = (obj: Image): void => {
     setShowModal(true);
-    setAlt(alt);
-    setUrls(urls);
+    setAlt(obj.alt_description);
+    setUrls(obj.urls.regular);
   }
 
-  const closeModal = () => {
+  const closeModal = (): void => {
     setShowModal(false);
     setAlt('');
     setUrls('');
   }
 
-  const notify = (message) => <ErrorMessage message={message} />;
+  const notify = (message: string): JSX.Element => <ErrorMessage message={message} />;
 
   return (
     <>
@@ -82,10 +92,11 @@ function App() {
       {isLoading && <Loader />}
       {error && notify('Sorry. Something went wrong.')}
       {isEmpty && notify('Sorry. There are no images...')}
-      
-      
       {showBtn && <LoadMoreBtn onLoadeMore={onLoadeMore} disabled={isLoading} />}
-      <ImageModal urls={urls} alt={alt} modalIsOpen={showModal} closeModal={closeModal} />
+      <ImageModal urls={urls} alt={alt}
+        modalIsOpen={showModal}
+        closeModal={closeModal} />
+
 
       <Toaster position='top-center' />
     </>

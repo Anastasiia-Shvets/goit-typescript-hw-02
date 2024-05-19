@@ -10,8 +10,8 @@ axios.defaults.params = {
     per_page: 10,
 };
 
-export const getGallery = async (query, page) => {
-    const { data } = await axios.get(`?query=${query}&page=${page}`);
+export const getGallery = async <T>(query: string, page: number):Promise<T> => {
+    const { data } = await axios.get<T>(`?query=${query}&page=${page}`);
 
     return data;
 };
